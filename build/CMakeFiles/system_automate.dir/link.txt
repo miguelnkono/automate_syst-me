@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/system_automate.dir/main.c.o CMakeFiles/system_automate.dir/automate_io.c.o CMakeFiles/system_automate.dir/data_structure.c.o -o system_automate 
