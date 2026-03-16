@@ -1,3 +1,0 @@
-/home/uncle_d/projects/system_automate/build/CMakeFiles/system_automate.dir
-/home/uncle_d/projects/system_automate/build/CMakeFiles/edit_cache.dir
-/home/uncle_d/projects/system_automate/build/CMakeFiles/rebuild_cache.dir
