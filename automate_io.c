@@ -14,7 +14,7 @@ __automate_transition__* automate_transition_create(uint8_t etat_depart, short s
 
     as->etat_depart = etat_depart;
     as->symbole = symbole;
-    as->etat_arrive;
+    as->etat_arrive = etat_arrive;
 
     return as;
 }

@@ -6,12 +6,11 @@
 #include <stdlib.h>
 
 /**
- * List dynamique pour stocké les différents données;
- * @param length est la taille de la liste;
- * @param capacity est la capacitée total de la liste;
- * @param item_size est la taille de l'élément que nous souhaitons stocké;
- * 
- * `da` pour `dynamic array`
+ * En-tête d'une liste dynamique (dynamic array).
+ * Stockée juste AVANT la zone de données en mémoire.
+ * @param length     nombre d'éléments actuellement stockés.
+ * @param capacity   nombre total d'éléments pouvant être stockés sans realloc.
+ * @param item_size  taille en octets d'un élément stocké.
  */
 typedef struct _da_header_
 {
@@ -20,24 +19,64 @@ typedef struct _da_header_
     size_t item_size;
 } __da_header__;
 
+/**
+ * Informations sur un groupe d'états (initiaux ou finaux).
+ * @param _etats_          nombre d'états dans ce groupe.
+ * @param _etat_numéros_   tableau dynamique contenant les numéros des états (uint8_t[]).
+ */
 typedef struct _automate_node_info
 {
-    uint8_t _etats_;
-    uint8_t *_etat_numéros_;
+    uint8_t  _etats_;
+    uint8_t *_etat_numéros_;    // tableau dynamique géré via _da_*
 } __automate_node_info__;
 
-
+/**
+ * Représentation d'un automate fini en mémoire.
+ * @param _nombre_symboles_     nombre de symboles dans l'alphabet.
+ * @param _nombre_etats_        nombre d'états.
+ * @param _etat_initiaux_       groupe des états initiaux.
+ * @param _etat_finaux_         groupe des états finaux (terminaux).
+ * @param _nombre_transaction_  nombre de transitions.
+ * @param _transitions_         tableau dynamique des transitions (__automate_transition__[]).
+ */
 typedef struct _automate_state_
 {
-    uint8_t _nombre_symboles_;
-    uint8_t _nombre_etats_;
-    __automate_node_info__ _etat_initiaux_;
-    __automate_node_info__ _etat_finaux_;
-    uint8_t _nombre_transaction_;
-    __automate_transition__ *_transitions_;
+    uint8_t                  _nombre_symboles_;
+    uint8_t                  _nombre_etats_;
+    __automate_node_info__   _etat_initiaux_;
+    __automate_node_info__   _etat_finaux_;
+    uint8_t                  _nombre_transaction_;
+    __automate_transition__ *_transitions_;     // tableau dynamique géré via _da_*
 } __automate_state__;
 
+// -------------------------------------------------------
+// API publique des listes dynamiques
+// (implémentée en static inline dans data_structure.c,
+//  ré-exposée ici via des macros pour un accès pratique)
+// -------------------------------------------------------
+
+/**
+ * Longueur d'une liste dynamique.
+ * Usage : _DA_LENGTH(mon_tableau)
+ */
+#define _DA_LENGTH(da) \
+    (((const __da_header__ *)(da) - 1)->length)
+
+/**
+ * Accès à l'élément d'index `i` d'une liste dynamique typée.
+ * Usage : _DA_GET(__automate_transition__, transitions, 2)
+ */
+#define _DA_GET(type, da, i) \
+    (((type *)(da))[i])
+
+// -------------------------------------------------------
+// Fonctions publiques de l'automate
+// -------------------------------------------------------
+
+/** Créer un automate vide. */
 __automate_state__ *automate_state_create();
+
+/** Libérer toute la mémoire d'un automate. */
 void automate_state_destroy(__automate_state__ *as);
 
 #endif // DATA_STRUCTURE_H
