@@ -27,7 +27,7 @@ typedef struct _da_header_
 typedef struct _automate_node_info
 {
     uint8_t  _etats_;
-    uint8_t *_etat_numéros_;    // tableau dynamique géré via _da_*
+    uint8_t *_etat_numéros_;
 } __automate_node_info__;
 
 /**
@@ -46,14 +46,8 @@ typedef struct _automate_state_
     __automate_node_info__   _etat_initiaux_;
     __automate_node_info__   _etat_finaux_;
     uint8_t                  _nombre_transaction_;
-    __automate_transition__ *_transitions_;     // tableau dynamique géré via _da_*
+    __automate_transition__ *_transitions_;
 } __automate_state__;
-
-// -------------------------------------------------------
-// API publique des listes dynamiques
-// (implémentée en static inline dans data_structure.c,
-//  ré-exposée ici via des macros pour un accès pratique)
-// -------------------------------------------------------
 
 /**
  * Longueur d'une liste dynamique.
@@ -68,10 +62,6 @@ typedef struct _automate_state_
  */
 #define _DA_GET(type, da, i) \
     (((type *)(da))[i])
-
-// -------------------------------------------------------
-// Fonctions publiques de l'automate
-// -------------------------------------------------------
 
 /** Créer un automate vide. */
 __automate_state__ *automate_state_create();

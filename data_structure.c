@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/////////////////////////////////////////////////////////
-//// méthodes privées (déclarées AVANT leur utilisation)
-/////////////////////////////////////////////////////////
-
 /**
  * Initialiser une liste dynamique.
  * @param item_size est la taille d'un élément qui va être stocké dans la liste.
@@ -39,7 +35,7 @@ static inline void *_da_init(const size_t item_size, const size_t capacity)
  */
 static inline void _da_ensure_capacity(void **da, const size_t capacity_increase)
 {
-    __da_header__ *h = ((__da_header__ *)(*da)) - 1;    // revenir à l'en-tête de la liste
+    __da_header__ *h = ((__da_header__ *)(*da)) - 1;
 
     if (h->length + capacity_increase > h->capacity)
     {
@@ -58,7 +54,7 @@ static inline void _da_ensure_capacity(void **da, const size_t capacity_increase
         }
 
         h->capacity = new_capacity;
-        *da = h + 1;    // mettre à jour le pointeur après le realloc
+        *da = h + 1;
     }
 }
 
@@ -116,10 +112,6 @@ static inline void _da_free(void *da)
         free((__da_header__ *)(da) - 1);
     }
 }
-
-/////////////////////////////////////////////////////////
-//// méthodes publiques
-/////////////////////////////////////////////////////////
 
 /**
  * Créer et initialiser un automate vide.
