@@ -4,12 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// ── Transition ────────────────────────────────────────────────────────────────
-//
-// Déplacée ici (depuis automate_io.h) pour que data_structure.h soit autonome
-// et éviter la dépendance circulaire :
-//   data_structure.h ← automate_io.h ← data_structure.h
-
 /**
  * Une transition est constituée d'un état de départ, d'un symbole et d'un état d'arrivée.
  */
@@ -19,8 +13,6 @@ typedef struct _automate_transition_
     short   symbole;
     uint8_t etat_arrive;
 } __automate_transition__;
-
-// ── Liste dynamique ───────────────────────────────────────────────────────────
 
 /**
  * En-tête d'une liste dynamique (dynamic array).
@@ -35,8 +27,6 @@ typedef struct _da_header_
     size_t capacity;
     size_t item_size;
 } __da_header__;
-
-// ── Structures de l'automate ──────────────────────────────────────────────────
 
 /**
  * Informations sur un groupe d'états (initiaux ou finaux).
@@ -78,8 +68,6 @@ typedef struct _automate_state_
     char                    *_log_;
 } __automate_state__;
 
-// ── Macros de la liste dynamique ──────────────────────────────────────────────
-
 /**
  * Longueur d'une liste dynamique.
  * Usage : _DA_LENGTH(mon_tableau)
@@ -105,8 +93,6 @@ typedef struct _automate_state_
         type _tmp_ = (valeur); \
         _da_push((void **)(pda), &_tmp_); \
     } while (0)
-
-// ── API ───────────────────────────────────────────────────────────────────────
 
 /** Créer un automate vide. */
 __automate_state__ *automate_state_create(void);

@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// ── Helpers internes ──────────────────────────────────────────────────────────
-
 /**
  * Tester si un état donné est présent dans un groupe (initiaux / finaux).
  */
@@ -49,8 +47,6 @@ static void _cellule_transitions(const __automate_state__ *as,
         strncpy(tampon, "--", taille - 1);
 }
 
-// ── Tests structurels ─────────────────────────────────────────────────────────
-
 __automate_tests__ automate_tester(const __automate_state__ *as)
 {
     __automate_tests__ t;
@@ -69,7 +65,6 @@ __automate_tests__ automate_tester(const __automate_state__ *as)
     int nb_etats = as->_nombre_etats_;
     size_t nb_tr = _DA_LENGTH(as->_transitions_);
 
-    // ── Test standard ─────────────────────────────────────────────────────────
     // Condition 1 : exactement un état initial
     // Condition 2 : l'état initial n'est destination d'aucune transition
 
@@ -93,10 +88,6 @@ __automate_tests__ automate_tester(const __automate_state__ *as)
         // plus d'un état initial → non standard, on note le surplus
         t.nb_initiaux_exces = (int)as->_etat_initiaux_._etats_ - 1;
     }
-
-    // ── Test déterministe ─────────────────────────────────────────────────────
-    // Condition 1 : exactement un état initial
-    // Condition 2 : pour tout (état, symbole) au plus une transition
 
     if (as->_etat_initiaux_._etats_ == 1)
     {
@@ -126,12 +117,6 @@ __automate_tests__ automate_tester(const __automate_state__ *as)
         }
         t.est_deterministe = !nd_trouve;
     }
-    // si plusieurs états initiaux → non déterministe (etat_nd reste -1,
-    // la raison est déjà capturée dans nb_initiaux_exces)
-
-    // ── Test complet ──────────────────────────────────────────────────────────
-    // Condition : pour tout (état, symbole) au moins une transition
-    // (n'a de sens que si l'automate est déterministe, mais on teste quand même)
 
     int incomplet_trouve = 0;
 
@@ -166,7 +151,7 @@ void afficher_tests(const __automate_tests__ *t)
 {
     printf("=== Propriétés de l'automate ===\n\n");
 
-    // ── Standard ──────────────────────────────────────────────────────────────
+    // Standard 
     if (t->est_standard)
     {
         printf("  Standard      : OUI\n");
@@ -181,7 +166,7 @@ void afficher_tests(const __automate_tests__ *t)
             printf("    → l'état initial est la cible d'au moins une transition\n");
     }
 
-    // ── Déterministe ──────────────────────────────────────────────────────────
+    // Déterministe 
     if (t->est_deterministe)
     {
         printf("  Déterministe  : OUI\n");
@@ -196,7 +181,6 @@ void afficher_tests(const __automate_tests__ *t)
                    t->etat_nd, (char)('a' + t->symbole_nd));
     }
 
-    // ── Complet ───────────────────────────────────────────────────────────────
     if (t->est_complet)
     {
         printf("  Complet       : OUI\n");
@@ -211,8 +195,6 @@ void afficher_tests(const __automate_tests__ *t)
 
     printf("\n");
 }
-
-// ── Lecture ───────────────────────────────────────────────────────────────────
 
 __automate_state__ *lire_automate_sur_fichier(const char *nom_fichier)
 {
@@ -299,8 +281,6 @@ erreur:
     return NULL;
 }
 
-// ── Affichage ─────────────────────────────────────────────────────────────────
-
 /**
  * Retourner le nom d'affichage d'un état :
  * - si _noms_etats_ est défini et le nom non NULL → ce nom
@@ -326,7 +306,7 @@ void afficher_automate(const __automate_state__ *as)
     int nb_sym   = as->_nombre_symboles_;
     int nb_etats = as->_nombre_etats_;
 
-    // ── En-tête informatif ────────────────────────────────────────────────────
+    // En-tête informatif 
     printf("Alphabet   : { ");
     for (int s = 0; s < nb_sym; s++)
         printf("%c%s", 'a' + s, s < nb_sym - 1 ? ", " : " ");
@@ -360,7 +340,7 @@ void afficher_automate(const __automate_state__ *as)
 
     printf("Transitions: %d\n\n", as->_nombre_transaction_);
 
-    // ── Calcul des largeurs de colonnes ───────────────────────────────────────
+    // Calcul des largeurs de colonnes 
     char tampon[256];
 
     // largeur colonne état : max sur tous les noms + 3 (marqueur "ES ")
@@ -412,7 +392,7 @@ void afficher_automate(const __automate_state__ *as)
             }
         }
 
-    // ── En-tête de la table ───────────────────────────────────────────────────
+    // En-tête de la table 
     printf("%*s", larg_etat, "");
     for (int s = 0; s < nb_sym; s++)
         printf(" | %*c", larg_col[s], 'a' + s);
@@ -426,7 +406,7 @@ void afficher_automate(const __automate_state__ *as)
     }
     putchar('\n');
 
-    // ── Lignes de transitions ─────────────────────────────────────────────────
+    // Lignes de transitions 
     for (int e = 0; e < nb_etats; e++)
     {
         int est_initial = _groupe_contient(&as->_etat_initiaux_, (uint8_t)e);

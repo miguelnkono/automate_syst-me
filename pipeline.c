@@ -8,8 +8,6 @@
 #include <stdint.h>
 #include <string.h>
 
-// ── Helpers internes de synchronisation ──────────────────────────────────────
-
 /**
  * Initialiser une étape : mutex, condition, statut EN_ATTENTE, résultat NULL.
  * @return 0 si OK, -1 si erreur d'initialisation des primitives C11
@@ -63,8 +61,6 @@ static void _etape_signaler(__etape_pipeline__ *etape,
     mtx_unlock(&etape->_mtx_);
 }
 
-// ── Implémentations placeholder des opérations ───────────────────────────────
-//
 // Retournent NULL tant que non implémentées.
 // Les threads interprètent NULL comme ETAPE_IGNOREE provisoirement.
 // Quand l'algorithme sera codé, NULL indiquera une vraie erreur → ETAPE_ERREUR.
@@ -85,11 +81,9 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     sfa->_nombre_etats_      = (uint8_t)(nb_etats + 1);
     sfa->_nombre_transaction_ = 0;  // mis à jour au fur et à mesure
 
-    // ── État initial : uniquement i' ─────────────────────────────────────────
     sfa->_etat_initiaux_._etats_ = 1;
     _DA_PUSH(uint8_t, &sfa->_etat_initiaux_._etat_numéros_, i_prime);
 
-    // ── États finaux : copier les finaux existants ────────────────────────────
     // Si au moins un état initial de af était final, i' est aussi final.
     int i_prime_est_final = 0;
     for (uint8_t f = 0; f < af->_etat_finaux_._etats_; f++)
@@ -113,7 +107,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
         sfa->_etat_finaux_._etats_++;
     }
 
-    // ── Transitions : copier toutes les transitions existantes ────────────────
+    // Transitions : copier toutes les transitions existantes
     for (size_t k = 0; k < nb_tr; k++)
     {
         __automate_transition__ t = _DA_GET(__automate_transition__, af->_transitions_, k);
@@ -121,7 +115,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
         sfa->_nombre_transaction_++;
     }
 
-    // ── Transitions de i' : dupliquer celles de chaque état initial de af ─────
+    // Transitions de i' : dupliquer celles de chaque état initial de af
     // Pour chaque état initial ii de af, pour chaque transition ii -sym-> dest,
     // ajouter i' -sym-> dest dans sfa.
     for (uint8_t ii = 0; ii < af->_etat_initiaux_._etats_; ii++)
@@ -146,8 +140,6 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     return sfa;
 }
 
-// ── Helpers pour la déterminisation ──────────────────────────────────────────
-//
 // On représente chaque état de l'AFDC comme un bitmask uint64_t :
 // le bit k est 1 si l'état k de l'AF original fait partie de cet ensemble.
 // Limite : 64 états, ce qui couvre tous les automates du sujet.
@@ -213,7 +205,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
     int nb_sym      = af->_nombre_symboles_;
     int nb_etats_af = af->_nombre_etats_;
 
-    // ── Table de l'AFDC : masques[i] = bitmask de l'état i de l'AFDC ────────
+    // Table de l'AFDC : masques[i] = bitmask de l'état i de l'AFDC
     uint64_t masques[_DET_MAX_ETATS_AFDC];
     int      nb_etats_afdc = 0;
     int      besoin_poubelle = 0;
@@ -222,7 +214,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
     int file[_DET_MAX_ETATS_AFDC];
     int file_debut = 0, file_fin = 0;
 
-    // ── État initial de l'AFDC = ensemble des états initiaux de l'AF ─────────
+    // État initial de l'AFDC = ensemble des états initiaux de l'AF
     uint64_t masque_init = 0;
     for (uint8_t i = 0; i < af->_etat_initiaux_._etats_; i++)
         masque_init |= (uint64_t)1 << _DA_GET(uint8_t,
@@ -231,14 +223,13 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
     masques[nb_etats_afdc++] = masque_init;
     file[file_fin++] = 0;
 
-    // ── Table de transitions de l'AFDC : trans[i][s] = indice état arrivée ──
+    // Table de transitions de l'AFDC : trans[i][s] = indice état arrivée
     // -1 = poubelle
     int trans[_DET_MAX_ETATS_AFDC][26];
     for (int i = 0; i < _DET_MAX_ETATS_AFDC; i++)
         for (int s = 0; s < 26; s++)
             trans[i][s] = -1;
 
-    // ── Subset construction ───────────────────────────────────────────────────
     while (file_debut < file_fin)
     {
         int idx = file[file_debut++];
@@ -279,7 +270,6 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
         }
     }
 
-    // ── Indice de la poubelle (dernier état si nécessaire) ────────────────────
     int idx_poubelle = -1;
     if (besoin_poubelle)
     {
@@ -294,7 +284,6 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
                     trans[i][s] = idx_poubelle;
     }
 
-    // ── Construire l'__automate_state__ résultat ──────────────────────────────
     __automate_state__ *afdc = automate_state_create();
     if (afdc == NULL) return NULL;
 
@@ -334,7 +323,6 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
             afdc->_nombre_transaction_++;
         }
 
-    // ── Noms des états pour l'affichage ───────────────────────────────────────
     afdc->_noms_etats_ = (char **) calloc(nb_etats_afdc, sizeof(char *));
     if (afdc->_noms_etats_ == NULL)
     {
@@ -351,8 +339,6 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
 
     return afdc;
 }
-
-// ── Helpers pour la minimisation ─────────────────────────────────────────────
 
 #define _MIN_MAX_ETATS 256
 
@@ -387,7 +373,6 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
     int nb_etats = afdc->_nombre_etats_;
     int nb_sym   = afdc->_nombre_symboles_;
 
-    // ── partition[e] = indice de la classe de l'état e ───────────────────────
     int partition[_MIN_MAX_ETATS];
     int nb_classes = 0;
 
@@ -445,7 +430,6 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
     _LOG_APPEND("\n  [Minimisation — partitions successives]\n");
 
-    // ── Raffinement ───────────────────────────────────────────────────────────
     // table de transitions de l'AFDC : delta[e][s] = état arrivée
     int delta[_MIN_MAX_ETATS][26];
     for (int e = 0; e < nb_etats; e++)
@@ -466,7 +450,7 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
     while (change)
     {
-        // ── Enregistrer la partition courante dans le log ─────────────────────
+        // Enregistrer la partition courante dans le log 
         _LOG_APPEND("  P%d : { ", iteration++);
         for (int c = 0; c < nb_classes; c++)
         {
@@ -534,7 +518,7 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
 #undef _LOG_APPEND
 
-    // ── Construire l'AFDCM ────────────────────────────────────────────────────
+    // Construire l'AFDCM 
     __automate_state__ *afdcm = automate_state_create();
     if (afdcm == NULL) { free(log_buf); return NULL; }
 
@@ -581,7 +565,6 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
         }
     }
 
-    // ── Noms des états du AFDCM (membres de chaque classe) ───────────────────
     afdcm->_noms_etats_ = (char **) calloc(nb_classes, sizeof(char *));
     if (afdcm->_noms_etats_ == NULL)
     {
@@ -615,7 +598,6 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
     acomp->_nombre_symboles_ = (uint8_t)nb_sym;
     acomp->_nombre_etats_    = (uint8_t)nb_etats;
 
-    // ── État initial : identique ──────────────────────────────────────────────
     acomp->_etat_initiaux_._etats_ = afdcm->_etat_initiaux_._etats_;
     for (uint8_t i = 0; i < afdcm->_etat_initiaux_._etats_; i++)
     {
@@ -623,7 +605,6 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
         _DA_PUSH(uint8_t, &acomp->_etat_initiaux_._etat_numéros_, e);
     }
 
-    // ── États finaux : inverser — tout état NON final dans afdcm devient final ─
     for (int e = 0; e < nb_etats; e++)
     {
         if (!_groupe_contient(&afdcm->_etat_finaux_, (uint8_t)e))
@@ -633,7 +614,6 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
         }
     }
 
-    // ── Transitions : identiques ──────────────────────────────────────────────
     size_t nb_tr = _DA_LENGTH(afdcm->_transitions_);
     for (size_t k = 0; k < nb_tr; k++)
     {
@@ -643,7 +623,6 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
         acomp->_nombre_transaction_++;
     }
 
-    // ── Noms des états : copier depuis afdcm si présents ─────────────────────
     if (afdcm->_noms_etats_ != NULL)
     {
         acomp->_noms_etats_ = (char **) calloc(nb_etats, sizeof(char *));
@@ -661,8 +640,6 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
 
     return acomp;
 }
-
-// ── Arguments passés à chaque thread ─────────────────────────────────────────
 
 // T1 : standardisation — repart de l'automate original
 typedef struct
@@ -683,22 +660,20 @@ typedef struct
 // T3 : minimisation — attend T2
 typedef struct
 {
-    const __automate_state__  *_af_;                      // fallback si T2 ignoré
+    const __automate_state__  *_af_;
     const __automate_tests__  *_tests_;
-    __etape_pipeline__         *_etape_determinisation_;  // source (à attendre)
-    __etape_pipeline__         *_etape_;                  // soi-même (à signaler)
+    __etape_pipeline__         *_etape_determinisation_;
+    __etape_pipeline__         *_etape_;
 } __args_minimisation__;
 
 // T4 : complémentaire — attend T3
 typedef struct
 {
-    const __automate_state__  *_af_;                      // fallback si T2+T3 ignorés
+    const __automate_state__  *_af_;
     const __automate_tests__  *_tests_;
-    __etape_pipeline__         *_etape_minimisation_;     // source (à attendre)
-    __etape_pipeline__         *_etape_;                  // soi-même (à signaler)
+    __etape_pipeline__         *_etape_minimisation_;
+    __etape_pipeline__         *_etape_;
 } __args_complementaire__;
-
-// ── Fonctions des threads ─────────────────────────────────────────────────────
 
 static int _thread_standardisation(void *arg)
 {
@@ -761,7 +736,7 @@ static int _thread_minimisation(void *arg)
     a->_etape_->_statut_ = ETAPE_EN_COURS;
     mtx_unlock(&a->_etape_->_mtx_);
 
-    // ── attendre que la déterminisation soit terminée ─────────────────────────
+    // attendre que la déterminisation soit terminée 
     mtx_lock(&a->_etape_determinisation_->_mtx_);
     while (a->_etape_determinisation_->_statut_ == ETAPE_EN_ATTENTE ||
            a->_etape_determinisation_->_statut_ == ETAPE_EN_COURS)
@@ -803,7 +778,7 @@ static int _thread_complementaire(void *arg)
     a->_etape_->_statut_ = ETAPE_EN_COURS;
     mtx_unlock(&a->_etape_->_mtx_);
 
-    // ── attendre que la minimisation soit terminée ────────────────────────────
+    // attendre que la minimisation soit terminée 
     mtx_lock(&a->_etape_minimisation_->_mtx_);
     while (a->_etape_minimisation_->_statut_ == ETAPE_EN_ATTENTE ||
            a->_etape_minimisation_->_statut_ == ETAPE_EN_COURS)
@@ -832,8 +807,6 @@ static int _thread_complementaire(void *arg)
     return 0;
 }
 
-// ── API publique ──────────────────────────────────────────────────────────────
-
 __pipeline__ *pipeline_creer(const __automate_state__ *af)
 {
     __pipeline__ *p = (__pipeline__ *) malloc(sizeof(__pipeline__));
@@ -845,7 +818,6 @@ __pipeline__ *pipeline_creer(const __automate_state__ *af)
 
     p->_af_original_ = af;
 
-    // ── Tests structurels : calculés ici, avant de lancer les threads ─────────
     // Les résultats sont stockés dans p->_tests_ et transmis en lecture seule
     // à chaque thread via leurs args. Pas de race condition : les threads ne
     // modifient jamais _tests_.
@@ -857,7 +829,7 @@ __pipeline__ *pipeline_creer(const __automate_state__ *af)
     if (_etape_init(&p->_etape_minimisation_)     != 0) goto erreur;
     if (_etape_init(&p->_etape_complementaire_)   != 0) goto erreur;
 
-    // ── Préparer les arguments de chaque thread ───────────────────────────────
+    // Préparer les arguments de chaque thread 
     __args_standardisation__ *args_std = malloc(sizeof(__args_standardisation__));
     __args_determinisation__ *args_det = malloc(sizeof(__args_determinisation__));
     __args_minimisation__    *args_min = malloc(sizeof(__args_minimisation__));
@@ -888,7 +860,7 @@ __pipeline__ *pipeline_creer(const __automate_state__ *af)
     args_cmp->_etape_minimisation_   = &p->_etape_minimisation_;
     args_cmp->_etape_                = &p->_etape_complementaire_;
 
-    // ── Lancer les threads ────────────────────────────────────────────────────
+    // Lancer les threads 
     if (thrd_create(&p->_etape_standardisation_._thread_,
                     _thread_standardisation, args_std) != thrd_success)
     {
