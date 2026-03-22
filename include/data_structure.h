@@ -26,7 +26,7 @@ typedef struct _da_header_
  */
 typedef struct _automate_node_info
 {
-    uint8_t  _etats_;
+    uint8_t _etats_;
     uint8_t *_etat_numéros_;
 } __automate_node_info__;
 
@@ -41,11 +41,11 @@ typedef struct _automate_node_info
  */
 typedef struct _automate_state_
 {
-    uint8_t                  _nombre_symboles_;
-    uint8_t                  _nombre_etats_;
-    __automate_node_info__   _etat_initiaux_;
-    __automate_node_info__   _etat_finaux_;
-    uint8_t                  _nombre_transaction_;
+    uint8_t _nombre_symboles_;
+    uint8_t _nombre_etats_;
+    __automate_node_info__ _etat_initiaux_;
+    __automate_node_info__ _etat_finaux_;
+    uint8_t _nombre_transaction_;
     __automate_transition__ *_transitions_;
 } __automate_state__;
 
@@ -63,10 +63,29 @@ typedef struct _automate_state_
 #define _DA_GET(type, da, i) \
     (((type *)(da))[i])
 
+/**
+ * Ajouter un élément à la fin d'une liste dynamique typée.
+ * Met à jour le pointeur si un realloc a eu lieu.
+ * Usage : _DA_PUSH(uint8_t, &mon_tableau, valeur)
+ *         _DA_PUSH(__automate_transition__, &transitions, t)
+ */
+#define _DA_PUSH(type, pda, valeur)       \
+    do                                    \
+    {                                     \
+        type _tmp_ = (valeur);            \
+        _da_push((void **)(pda), &_tmp_); \
+    } while (0)
+
 /** Créer un automate vide. */
 __automate_state__ *automate_state_create();
 
 /** Libérer toute la mémoire d'un automate. */
 void automate_state_destroy(__automate_state__ *as);
+
+/**
+ * Fonction interne exposée pour le macro _DA_PUSH.
+ * Ne pas appeler directement — utiliser le macro _DA_PUSH.
+ */
+void _da_push(void **da, const void *item);
 
 #endif // DATA_STRUCTURE_H
