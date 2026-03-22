@@ -10,7 +10,11 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY
 )
 target_sources(${PROJECT_NAME} PRIVATE main.c 
     automate_io.c
-    data_structure.c)
+    data_structure.c
+    pipeline.c)
 target_include_directories(${PROJECT_NAME} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)

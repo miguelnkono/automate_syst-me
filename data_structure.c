@@ -11,7 +11,7 @@
  */
 static inline void *_da_init(const size_t item_size, const size_t capacity)
 {
-    __da_header__ *h = (__da_header__ *)malloc(item_size * capacity + sizeof(__da_header__));
+    __da_header__ *h = (__da_header__ *) malloc(item_size * capacity + sizeof(__da_header__));
 
     if (h == NULL)
     {
@@ -19,8 +19,8 @@ static inline void *_da_init(const size_t item_size, const size_t capacity)
         exit(1);
     }
 
-    h->length = 0;
-    h->capacity = capacity;
+    h->length    = 0;
+    h->capacity  = capacity;
     h->item_size = item_size;
 
     // retourner le pointeur juste après les méta-données de l'en-tête
@@ -45,7 +45,7 @@ static inline void _da_ensure_capacity(void **da, const size_t capacity_increase
             new_capacity *= 2;
         }
 
-        h = (__da_header__ *)realloc(h, h->item_size * new_capacity + sizeof(__da_header__));
+        h = (__da_header__ *) realloc(h, h->item_size * new_capacity + sizeof(__da_header__));
 
         if (h == NULL)
         {
@@ -75,7 +75,7 @@ static inline void _da_increment_length(void *da)
 {
     if (da)
     {
-        ((__da_header__ *)(da)-1)->length++;
+        ((__da_header__ *)(da) - 1)->length++;
     }
 }
 
@@ -109,7 +109,7 @@ static inline void _da_free(void *da)
 {
     if (da)
     {
-        free((__da_header__ *)(da)-1);
+        free((__da_header__ *)(da) - 1);
     }
 }
 
@@ -117,28 +117,28 @@ static inline void _da_free(void *da)
  * Créer et initialiser un automate vide.
  * @return un pointeur vers l'automate créé, ou NULL en cas d'échec.
  */
-__automate_state__ *automate_state_create()
+__automate_state__ *automate_state_create(void)
 {
-    __automate_state__ *as = (__automate_state__ *)malloc(sizeof(__automate_state__));
+    __automate_state__ *as = (__automate_state__ *) malloc( sizeof(__automate_state__) );
     if (as == NULL)
     {
         fprintf(stderr, "Impossible de créer l'automate\n");
         return NULL;
     }
 
-    as->_nombre_symboles_ = 0;
-    as->_nombre_etats_ = 0;
+    as->_nombre_symboles_    = 0;
+    as->_nombre_etats_       = 0;
     as->_nombre_transaction_ = 0;
+    as->_noms_etats_         = NULL;
+    as->_log_                = NULL;
 
-    // initialiser les listes dynamiques pour les états initiaux et finaux
-    as->_etat_initiaux_._etats_ = 0;
-    as->_etat_initiaux_._etat_numéros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
+    as->_etat_initiaux_._etats_        = 0;
+    as->_etat_initiaux_._etat_numéros_ = (uint8_t *) _da_init(sizeof(uint8_t), 4);
 
-    as->_etat_finaux_._etats_ = 0;
-    as->_etat_finaux_._etat_numéros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
+    as->_etat_finaux_._etats_          = 0;
+    as->_etat_finaux_._etat_numéros_   = (uint8_t *) _da_init(sizeof(uint8_t), 4);
 
-    // initialiser la liste dynamique des transitions
-    as->_transitions_ = (__automate_transition__ *)_da_init(sizeof(__automate_transition__), 4);
+    as->_transitions_ = (__automate_transition__ *) _da_init(sizeof(__automate_transition__), 4);
 
     return as;
 }
@@ -152,19 +152,26 @@ void automate_state_destroy(__automate_state__ *as)
     if (as != NULL)
     {
         if (as->_etat_initiaux_._etat_numéros_ != NULL)
-        {
             _da_free(as->_etat_initiaux_._etat_numéros_);
-        }
 
         if (as->_etat_finaux_._etat_numéros_ != NULL)
-        {
             _da_free(as->_etat_finaux_._etat_numéros_);
-        }
 
         if (as->_transitions_ != NULL)
-        {
             _da_free(as->_transitions_);
+
+        if (as->_noms_etats_ != NULL)
+        {
+            for (int i = 0; i < as->_nombre_etats_; i++)
+            {
+                if (as->_noms_etats_[i] != NULL)
+                    free(as->_noms_etats_[i]);
+            }
+            free(as->_noms_etats_);
         }
+
+        if (as->_log_ != NULL)
+            free(as->_log_);
 
         free(as);
     }
