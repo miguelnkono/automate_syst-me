@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include "automate_io.h"
 
 #include "pipeline.h"
 #include "automate_io.h"
@@ -66,7 +67,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     int nb_etats = af->_nombre_etats_;
     size_t nb_tr = _DA_LENGTH(af->_transitions_);
 
-  // le nouvel état initial i' reçoit le numéro nb_etats
+  // le nouvel état initial i' reçoit le numero nb_etats
   uint8_t i_prime = (uint8_t)nb_etats;
 
     sfa->_nombre_symboles_   = (uint8_t)nb_sym;
@@ -74,20 +75,20 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     sfa->_nombre_transaction_ = 0;  // mis à jour au fur et à mesure
 
     sfa->_etat_initiaux_._etats_ = 1;
-    _DA_PUSH(uint8_t, &sfa->_etat_initiaux_._etat_numéros_, i_prime);
+    _DA_PUSH(uint8_t, &sfa->_etat_initiaux_._etat_numeros_, i_prime);
 
     // Si au moins un état initial de af était final, i' est aussi final.
     int i_prime_est_final = 0;
     for (uint8_t f = 0; f < af->_etat_finaux_._etats_; f++)
     {
-        uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numéros_, f);
-        _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numéros_, ef);
+        uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numeros_, f);
+        _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numeros_, ef);
         sfa->_etat_finaux_._etats_++;
 
         // vérifier si cet état final est aussi un état initial de af
         for (uint8_t ii = 0; ii < af->_etat_initiaux_._etats_; ii++)
         {
-            if (_DA_GET(uint8_t, af->_etat_initiaux_._etat_numéros_, ii) == ef)
+            if (_DA_GET(uint8_t, af->_etat_initiaux_._etat_numeros_, ii) == ef)
             {
                 i_prime_est_final = 1;
             }
@@ -95,7 +96,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     }
     if (i_prime_est_final)
     {
-        _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numéros_, i_prime);
+        _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numeros_, i_prime);
         sfa->_etat_finaux_._etats_++;
     }
 
@@ -112,7 +113,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af)
     // ajouter i' -sym-> dest dans sfa.
     for (uint8_t ii = 0; ii < af->_etat_initiaux_._etats_; ii++)
     {
-        uint8_t etat_init = _DA_GET(uint8_t, af->_etat_initiaux_._etat_numéros_, ii);
+        uint8_t etat_init = _DA_GET(uint8_t, af->_etat_initiaux_._etat_numeros_, ii);
 
         for (size_t k = 0; k < nb_tr; k++)
         {
@@ -210,7 +211,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
     uint64_t masque_init = 0;
     for (uint8_t i = 0; i < af->_etat_initiaux_._etats_; i++)
         masque_init |= (uint64_t)1 << _DA_GET(uint8_t,
-                                              af->_etat_initiaux_._etat_numéros_, i);
+                                              af->_etat_initiaux_._etat_numeros_, i);
 
   masques[nb_etats_afdc++] = masque_init;
   file[file_fin++] = 0;
@@ -281,7 +282,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
 
     // état initial : indice 0 (= masque_init)
     afdc->_etat_initiaux_._etats_ = 1;
-    _DA_PUSH(uint8_t, &afdc->_etat_initiaux_._etat_numéros_, 0);
+    _DA_PUSH(uint8_t, &afdc->_etat_initiaux_._etat_numeros_, 0);
 
     // états finaux : tout état dont le masque contient au moins un état final de AF
     for (int i = 0; i < nb_etats_afdc; i++)
@@ -290,12 +291,12 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af)
         int est_final = 0;
         for (uint8_t f = 0; f < af->_etat_finaux_._etats_ && !est_final; f++)
         {
-            uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numéros_, f);
+            uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numeros_, f);
             if (masques[i] & ((uint64_t)1 << ef)) est_final = 1;
         }
         if (est_final)
         {
-            _DA_PUSH(uint8_t, &afdc->_etat_finaux_._etat_numéros_, (uint8_t)i);
+            _DA_PUSH(uint8_t, &afdc->_etat_finaux_._etat_numeros_, (uint8_t)i);
             afdc->_etat_finaux_._etats_++;
         }
     }
@@ -371,11 +372,11 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
     for (uint8_t f = 0; f < afdc->_etat_finaux_._etats_; f++)
     {
-        uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numéros_, f);
+        uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numeros_, f);
         partition[ef] = 1;
     }
 
-    // compter les classes réellement présentes et les renuméroter 0..k
+    // compter les classes réellement présentes et les renumeroter 0..k
     int present[2] = {0, 0};
     for (int e = 0; e < nb_etats; e++) present[partition[e]] = 1;
     if (!present[0])
@@ -438,7 +439,7 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
     while (change)
     {
-        // Enregistrer la partition courante dans le log 
+        // Enregistrer la partition courante dans le log
         _LOG_APPEND("  P%d : { ", iteration++);
         for (int c = 0; c < nb_classes; c++)
         {
@@ -507,7 +508,7 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
 
 #undef _LOG_APPEND
 
-    // Construire l'AFDCM 
+    // Construire l'AFDCM
     __automate_state__ *afdcm = automate_state_create();
     if (afdcm == NULL) { free(log_buf); return NULL; }
 
@@ -515,21 +516,21 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc)
     afdcm->_nombre_etats_    = (uint8_t)nb_classes;
 
     // état initial : classe de l'état initial de l'AFDC
-    uint8_t init_afdc = _DA_GET(uint8_t, afdc->_etat_initiaux_._etat_numéros_, 0);
+    uint8_t init_afdc = _DA_GET(uint8_t, afdc->_etat_initiaux_._etat_numeros_, 0);
     uint8_t classe_init = (uint8_t)partition[init_afdc];
     afdcm->_etat_initiaux_._etats_ = 1;
-    _DA_PUSH(uint8_t, &afdcm->_etat_initiaux_._etat_numéros_, classe_init);
+    _DA_PUSH(uint8_t, &afdcm->_etat_initiaux_._etat_numeros_, classe_init);
 
     // états finaux : classes qui contiennent au moins un état final de l'AFDC
     int deja_final[_MIN_MAX_ETATS] = {0};
     for (uint8_t f = 0; f < afdc->_etat_finaux_._etats_; f++)
     {
-        uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numéros_, f);
+        uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numeros_, f);
         int c = partition[ef];
         if (!deja_final[c])
         {
             deja_final[c] = 1;
-            _DA_PUSH(uint8_t, &afdcm->_etat_finaux_._etat_numéros_, (uint8_t)c);
+            _DA_PUSH(uint8_t, &afdcm->_etat_finaux_._etat_numeros_, (uint8_t)c);
             afdcm->_etat_finaux_._etats_++;
         }
     }
@@ -590,15 +591,15 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm)
     acomp->_etat_initiaux_._etats_ = afdcm->_etat_initiaux_._etats_;
     for (uint8_t i = 0; i < afdcm->_etat_initiaux_._etats_; i++)
     {
-        uint8_t e = _DA_GET(uint8_t, afdcm->_etat_initiaux_._etat_numéros_, i);
-        _DA_PUSH(uint8_t, &acomp->_etat_initiaux_._etat_numéros_, e);
+        uint8_t e = _DA_GET(uint8_t, afdcm->_etat_initiaux_._etat_numeros_, i);
+        _DA_PUSH(uint8_t, &acomp->_etat_initiaux_._etat_numeros_, e);
     }
 
     for (int e = 0; e < nb_etats; e++)
     {
         if (!_groupe_contient(&afdcm->_etat_finaux_, (uint8_t)e))
         {
-            _DA_PUSH(uint8_t, &acomp->_etat_finaux_._etat_numéros_, (uint8_t)e);
+            _DA_PUSH(uint8_t, &acomp->_etat_finaux_._etat_numeros_, (uint8_t)e);
             acomp->_etat_finaux_._etats_++;
         }
     }
@@ -715,7 +716,7 @@ static int _thread_minimisation(void *arg) {
   a->_etape_->_statut_ = ETAPE_EN_COURS;
   mtx_unlock(&a->_etape_->_mtx_);
 
-    // attendre que la déterminisation soit terminée 
+    // attendre que la déterminisation soit terminée
     mtx_lock(&a->_etape_determinisation_->_mtx_);
     while (a->_etape_determinisation_->_statut_ == ETAPE_EN_ATTENTE ||
            a->_etape_determinisation_->_statut_ == ETAPE_EN_COURS)
@@ -755,7 +756,7 @@ static int _thread_complementaire(void *arg) {
   a->_etape_->_statut_ = ETAPE_EN_COURS;
   mtx_unlock(&a->_etape_->_mtx_);
 
-    // attendre que la minimisation soit terminée 
+    // attendre que la minimisation soit terminée
     mtx_lock(&a->_etape_minimisation_->_mtx_);
     while (a->_etape_minimisation_->_statut_ == ETAPE_EN_ATTENTE ||
            a->_etape_minimisation_->_statut_ == ETAPE_EN_COURS)
@@ -803,7 +804,7 @@ __pipeline__ *pipeline_creer(const __automate_state__ *af)
     if (_etape_init(&p->_etape_minimisation_)     != 0) goto erreur;
     if (_etape_init(&p->_etape_complementaire_)   != 0) goto erreur;
 
-    // Préparer les arguments de chaque thread 
+    // Préparer les arguments de chaque thread
     __args_standardisation__ *args_std = malloc(sizeof(__args_standardisation__));
     __args_determinisation__ *args_det = malloc(sizeof(__args_determinisation__));
     __args_minimisation__    *args_min = malloc(sizeof(__args_minimisation__));
@@ -834,7 +835,7 @@ __pipeline__ *pipeline_creer(const __automate_state__ *af)
     args_cmp->_etape_minimisation_   = &p->_etape_minimisation_;
     args_cmp->_etape_                = &p->_etape_complementaire_;
 
-    // Lancer les threads 
+    // Lancer les threads
     if (thrd_create(&p->_etape_standardisation_._thread_,
                     _thread_standardisation, args_std) != thrd_success)
     {
