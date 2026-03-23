@@ -36,7 +36,7 @@ typedef struct _da_header_
 typedef struct _automate_node_info
 {
     uint8_t  _etats_;
-    uint8_t *_etat_numéros_;
+    uint8_t *_etat_numeros_;
 } __automate_node_info__;
 
 /**

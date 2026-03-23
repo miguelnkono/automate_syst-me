@@ -9,7 +9,7 @@
  */
 int _groupe_contient(const __automate_node_info__ *groupe, uint8_t etat) {
   for (uint8_t i = 0; i < groupe->_etats_; i++) {
-    if (_DA_GET(uint8_t, groupe->_etat_numéros_, i) == etat)
+    if (_DA_GET(uint8_t, groupe->_etat_numeros_, i) == etat)
       return 1;
   }
   return 0;
@@ -63,7 +63,7 @@ __automate_tests__ automate_tester(const __automate_state__ *as) {
   // Condition 2 : l'état initial n'est destination d'aucune transition
 
   if (as->_etat_initiaux_._etats_ == 1) {
-    uint8_t i0 = _DA_GET(uint8_t, as->_etat_initiaux_._etat_numéros_, 0);
+    uint8_t i0 = _DA_GET(uint8_t, as->_etat_initiaux_._etat_numeros_, 0);
 
     // vérifier que i0 n'est la cible d'aucune transition
     int cible = 0;
@@ -200,7 +200,7 @@ __automate_state__ *lire_automate_sur_fichier(const char *nom_fichier) {
     uint8_t num;
     if (fscanf(f, " %hhu", &num) != 1)
       goto erreur;
-    _DA_PUSH(uint8_t, &as->_etat_initiaux_._etat_numéros_, num);
+    _DA_PUSH(uint8_t, &as->_etat_initiaux_._etat_numeros_, num);
   }
 
   // ligne 4 : états finaux
@@ -210,7 +210,7 @@ __automate_state__ *lire_automate_sur_fichier(const char *nom_fichier) {
     uint8_t num;
     if (fscanf(f, " %hhu", &num) != 1)
       goto erreur;
-    _DA_PUSH(uint8_t, &as->_etat_finaux_._etat_numéros_, num);
+    _DA_PUSH(uint8_t, &as->_etat_finaux_._etat_numeros_, num);
   }
 
   // ligne 5 : nombre de transitions
@@ -298,7 +298,7 @@ void afficher_automate(const __automate_state__ *as) {
 
   printf("Initiaux   : { ");
   for (uint8_t i = 0; i < as->_etat_initiaux_._etats_; i++) {
-    uint8_t e = _DA_GET(uint8_t, as->_etat_initiaux_._etat_numéros_, i);
+    uint8_t e = _DA_GET(uint8_t, as->_etat_initiaux_._etat_numeros_, i);
     printf("%s%s", _nom_etat(as, e, tmp, sizeof(tmp)),
            i < as->_etat_initiaux_._etats_ - 1 ? ", " : " ");
   }
@@ -306,7 +306,7 @@ void afficher_automate(const __automate_state__ *as) {
 
   printf("Terminaux  : { ");
   for (uint8_t i = 0; i < as->_etat_finaux_._etats_; i++) {
-    uint8_t e = _DA_GET(uint8_t, as->_etat_finaux_._etat_numéros_, i);
+    uint8_t e = _DA_GET(uint8_t, as->_etat_finaux_._etat_numeros_, i);
     printf("%s%s", _nom_etat(as, e, tmp, sizeof(tmp)),
            i < as->_etat_finaux_._etats_ - 1 ? ", " : " ");
   }

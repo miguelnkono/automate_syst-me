@@ -75,24 +75,24 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af) {
   sfa->_nombre_transaction_ = 0; // mis à jour au fur et à mesure
 
   sfa->_etat_initiaux_._etats_ = 1;
-  _DA_PUSH(uint8_t, &sfa->_etat_initiaux_._etat_numéros_, i_prime);
+  _DA_PUSH(uint8_t, &sfa->_etat_initiaux_._etat_numeros_, i_prime);
 
   // Si au moins un état initial de af était final, i' est aussi final.
   int i_prime_est_final = 0;
   for (uint8_t f = 0; f < af->_etat_finaux_._etats_; f++) {
-    uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numéros_, f);
-    _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numéros_, ef);
+    uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numeros_, f);
+    _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numeros_, ef);
     sfa->_etat_finaux_._etats_++;
 
     // vérifier si cet état final est aussi un état initial de af
     for (uint8_t ii = 0; ii < af->_etat_initiaux_._etats_; ii++) {
-      if (_DA_GET(uint8_t, af->_etat_initiaux_._etat_numéros_, ii) == ef) {
+      if (_DA_GET(uint8_t, af->_etat_initiaux_._etat_numeros_, ii) == ef) {
         i_prime_est_final = 1;
       }
     }
   }
   if (i_prime_est_final) {
-    _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numéros_, i_prime);
+    _DA_PUSH(uint8_t, &sfa->_etat_finaux_._etat_numeros_, i_prime);
     sfa->_etat_finaux_._etats_++;
   }
 
@@ -109,7 +109,7 @@ static __automate_state__ *_op_standardiser(const __automate_state__ *af) {
   // ajouter i' -sym-> dest dans sfa.
   for (uint8_t ii = 0; ii < af->_etat_initiaux_._etats_; ii++) {
     uint8_t etat_init =
-        _DA_GET(uint8_t, af->_etat_initiaux_._etat_numéros_, ii);
+        _DA_GET(uint8_t, af->_etat_initiaux_._etat_numeros_, ii);
 
     for (size_t k = 0; k < nb_tr; k++) {
       __automate_transition__ t =
@@ -203,7 +203,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af) {
   uint64_t masque_init = 0;
   for (uint8_t i = 0; i < af->_etat_initiaux_._etats_; i++)
     masque_init |= (uint64_t)1
-                   << _DA_GET(uint8_t, af->_etat_initiaux_._etat_numéros_, i);
+                   << _DA_GET(uint8_t, af->_etat_initiaux_._etat_numeros_, i);
 
   masques[nb_etats_afdc++] = masque_init;
   file[file_fin++] = 0;
@@ -274,7 +274,7 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af) {
 
   // état initial : indice 0 (= masque_init)
   afdc->_etat_initiaux_._etats_ = 1;
-  _DA_PUSH(uint8_t, &afdc->_etat_initiaux_._etat_numéros_, 0);
+  _DA_PUSH(uint8_t, &afdc->_etat_initiaux_._etat_numeros_, 0);
 
   // états finaux : tout état dont le masque contient au moins un état final de
   // AF
@@ -283,12 +283,12 @@ static __automate_state__ *_op_determiniser(const __automate_state__ *af) {
       continue; // la poubelle n'est jamais finale
     int est_final = 0;
     for (uint8_t f = 0; f < af->_etat_finaux_._etats_ && !est_final; f++) {
-      uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numéros_, f);
+      uint8_t ef = _DA_GET(uint8_t, af->_etat_finaux_._etat_numeros_, f);
       if (masques[i] & ((uint64_t)1 << ef))
         est_final = 1;
     }
     if (est_final) {
-      _DA_PUSH(uint8_t, &afdc->_etat_finaux_._etat_numéros_, (uint8_t)i);
+      _DA_PUSH(uint8_t, &afdc->_etat_finaux_._etat_numeros_, (uint8_t)i);
       afdc->_etat_finaux_._etats_++;
     }
   }
@@ -358,7 +358,7 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc) {
     partition[e] = 0;
 
   for (uint8_t f = 0; f < afdc->_etat_finaux_._etats_; f++) {
-    uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numéros_, f);
+    uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numeros_, f);
     partition[ef] = 1;
   }
 
@@ -506,19 +506,19 @@ static __automate_state__ *_op_minimiser(const __automate_state__ *afdc) {
   afdcm->_nombre_etats_ = (uint8_t)nb_classes;
 
   // état initial : classe de l'état initial de l'AFDC
-  uint8_t init_afdc = _DA_GET(uint8_t, afdc->_etat_initiaux_._etat_numéros_, 0);
+  uint8_t init_afdc = _DA_GET(uint8_t, afdc->_etat_initiaux_._etat_numeros_, 0);
   uint8_t classe_init = (uint8_t)partition[init_afdc];
   afdcm->_etat_initiaux_._etats_ = 1;
-  _DA_PUSH(uint8_t, &afdcm->_etat_initiaux_._etat_numéros_, classe_init);
+  _DA_PUSH(uint8_t, &afdcm->_etat_initiaux_._etat_numeros_, classe_init);
 
   // états finaux : classes qui contiennent au moins un état final de l'AFDC
   int deja_final[_MIN_MAX_ETATS] = {0};
   for (uint8_t f = 0; f < afdc->_etat_finaux_._etats_; f++) {
-    uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numéros_, f);
+    uint8_t ef = _DA_GET(uint8_t, afdc->_etat_finaux_._etat_numeros_, f);
     int c = partition[ef];
     if (!deja_final[c]) {
       deja_final[c] = 1;
-      _DA_PUSH(uint8_t, &afdcm->_etat_finaux_._etat_numéros_, (uint8_t)c);
+      _DA_PUSH(uint8_t, &afdcm->_etat_finaux_._etat_numeros_, (uint8_t)c);
       afdcm->_etat_finaux_._etats_++;
     }
   }
@@ -578,13 +578,13 @@ static __automate_state__ *_op_complementaire(const __automate_state__ *afdcm) {
 
   acomp->_etat_initiaux_._etats_ = afdcm->_etat_initiaux_._etats_;
   for (uint8_t i = 0; i < afdcm->_etat_initiaux_._etats_; i++) {
-    uint8_t e = _DA_GET(uint8_t, afdcm->_etat_initiaux_._etat_numéros_, i);
-    _DA_PUSH(uint8_t, &acomp->_etat_initiaux_._etat_numéros_, e);
+    uint8_t e = _DA_GET(uint8_t, afdcm->_etat_initiaux_._etat_numeros_, i);
+    _DA_PUSH(uint8_t, &acomp->_etat_initiaux_._etat_numeros_, e);
   }
 
   for (int e = 0; e < nb_etats; e++) {
     if (!_groupe_contient(&afdcm->_etat_finaux_, (uint8_t)e)) {
-      _DA_PUSH(uint8_t, &acomp->_etat_finaux_._etat_numéros_, (uint8_t)e);
+      _DA_PUSH(uint8_t, &acomp->_etat_finaux_._etat_numeros_, (uint8_t)e);
       acomp->_etat_finaux_._etats_++;
     }
   }

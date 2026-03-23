@@ -124,10 +124,10 @@ __automate_state__ *automate_state_create(void) {
   as->_log_ = NULL;
 
   as->_etat_initiaux_._etats_ = 0;
-  as->_etat_initiaux_._etat_numéros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
+  as->_etat_initiaux_._etat_numeros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
 
   as->_etat_finaux_._etats_ = 0;
-  as->_etat_finaux_._etat_numéros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
+  as->_etat_finaux_._etat_numeros_ = (uint8_t *)_da_init(sizeof(uint8_t), 4);
 
   as->_transitions_ =
       (__automate_transition__ *)_da_init(sizeof(__automate_transition__), 4);
@@ -141,11 +141,11 @@ __automate_state__ *automate_state_create(void) {
  */
 void automate_state_destroy(__automate_state__ *as) {
   if (as != NULL) {
-    if (as->_etat_initiaux_._etat_numéros_ != NULL)
-      _da_free(as->_etat_initiaux_._etat_numéros_);
+    if (as->_etat_initiaux_._etat_numeros_ != NULL)
+      _da_free(as->_etat_initiaux_._etat_numeros_);
 
-    if (as->_etat_finaux_._etat_numéros_ != NULL)
-      _da_free(as->_etat_finaux_._etat_numéros_);
+    if (as->_etat_finaux_._etat_numeros_ != NULL)
+      _da_free(as->_etat_finaux_._etat_numeros_);
 
     if (as->_transitions_ != NULL)
       _da_free(as->_transitions_);
