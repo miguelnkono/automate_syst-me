@@ -7,8 +7,7 @@
 
 #define NOM_FICHIER_MAX 256
 
-// ── Affichage du statut d'une étape ──────────────────────────────────────────
-
+// Affichage du statut d'une étape
 static void _afficher_statut_etape(const char *nom, __etape_pipeline__ *etape)
 {
     mtx_lock(&etape->_mtx_);
@@ -28,8 +27,7 @@ static void _afficher_statut_etape(const char *nom, __etape_pipeline__ *etape)
     printf("  %-22s %s\n", nom, label);
 }
 
-// ── Menu de traitement d'un automate ─────────────────────────────────────────
-
+// Menu de traitement d'un automate
 static void _menu_automate(const __automate_state__ *af, __pipeline__ *p)
 {
     char saisie[16];
@@ -58,7 +56,7 @@ static void _menu_automate(const __automate_state__ *af, __pipeline__ *p)
         else if (strcmp(saisie, "4") == 0) { etape = &p->_etape_complementaire_;  label = "Complémentaire";   }
         else { printf("Choix invalide.\n"); continue; }
 
-        // ── Attendre le résultat si pas encore prêt ───────────────────────────
+        // Attendre le résultat si pas encore prêt
         mtx_lock(&etape->_mtx_);
         int deja_pret = (etape->_statut_ != ETAPE_EN_ATTENTE &&
                          etape->_statut_ != ETAPE_EN_COURS);
@@ -69,7 +67,7 @@ static void _menu_automate(const __automate_state__ *af, __pipeline__ *p)
 
         __etape_statut__ statut = pipeline_attendre_etape(etape);
 
-        // ── Afficher le résultat ──────────────────────────────────────────────
+        // Afficher le résultat
         printf("\n=== %s ===\n", label);
         switch (statut)
         {
@@ -93,15 +91,11 @@ static void _menu_automate(const __automate_state__ *af, __pipeline__ *p)
     }
 }
 
-// ── Boucle principale ─────────────────────────────────────────────────────────
+// Boucle principale
 
 int main(void)
 {
     char choix[NOM_FICHIER_MAX];
-
-    printf("=================================================\n");
-    printf("   Traitement d'automates finis - EFREI P2\n");
-    printf("=================================================\n\n");
 
     while (1)
     {
@@ -122,7 +116,7 @@ int main(void)
 
         printf("\nChargement de : %s\n\n", nom_fichier);
 
-        // ── Lecture ───────────────────────────────────────────────────────────
+        // Lecture
         __automate_state__ *af = lire_automate_sur_fichier(nom_fichier);
         if (af == NULL)
         {
@@ -130,15 +124,13 @@ int main(void)
             continue;
         }
 
-        // ── Affichage immédiat ────────────────────────────────────────────────
+        // Affichage immédiat
         afficher_automate(af);
 
-        // ── Tests structurels (synchrones, avant les threads) ─────────────────
         // Les résultats sont aussi stockés dans le pipeline pour guider les threads.
         __automate_tests__ tests = automate_tester(af);
         afficher_tests(&tests);
 
-        // ── Lancement du pipeline en arrière-plan ─────────────────────────────
         // Les threads démarrent ici pendant que l'utilisateur lit l'affichage.
         __pipeline__ *p = pipeline_creer(af);
         if (p == NULL)
@@ -148,10 +140,10 @@ int main(void)
             continue;
         }
 
-        // ── Menu interactif (async : l'utilisateur n'attend pas les threads) ──
+        // Menu interactif (async : l'utilisateur n'attend pas les threads)
         _menu_automate(af, p);
 
-        // ── Nettoyage : join + libération ─────────────────────────────────────
+        // Nettoyage : join + libération
         pipeline_detruire(p);
         automate_state_destroy(af);
     }
